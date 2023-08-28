@@ -153,12 +153,12 @@ const CustomChatMessage: React.FC<CustomChatMessageProps> = ({
 };
 
 interface  ChatLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  label: string;
+  srLabel: string;
 children: React.ReactNode;
 }
 
-const ChatLink: React.FC<ChatLinkProps> = ({ label, children, ...props } ) =>
-<Link {...props} aria-label={`Link ${label}`}>{children}</Link>;
+const ChatLink: React.FC<ChatLinkProps> = ({ srLabel, children, ...props } ) =>
+<Link {...props} aria-label={`Link ${srLabel}`}>{children}</Link>;
 
 export const AccessibleChat: React.FC = () => {
   const user1: User = { name: 'Ashley McCarthy', status: 'available' };
@@ -184,9 +184,9 @@ export const AccessibleChat: React.FC = () => {
         user={user1}
         customTimestamp="Today at 5:22 PM."
         >
-          This is <ChatLink href="https://www.microsoft.com" label="my homepage">my homepage</ChatLink>. Some text goes here to
+          This is <ChatLink href="https://www.microsoft.com" srLabel="my homepage">my homepage</ChatLink>. Some text goes here to
           further demonstrate longer runs of texts. To make another example of an interactive element within a message, now follows{' '}
-          <ChatLink href="#" label="another link">another link</ChatLink> which is also a dummy link.
+          <ChatLink href="#" srLabel="another link">another link</ChatLink> which is also a dummy link.
         </CustomChatMessage>
       </Chat>
     </>
