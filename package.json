@@ -72,5 +72,7 @@
     "tslib": "^2.3.0",
     "typescript": "~5.0.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@fluentui/react-northstar": "^0.66.5"
+  }
 }
