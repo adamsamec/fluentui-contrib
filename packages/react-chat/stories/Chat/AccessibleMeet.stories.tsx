@@ -11,6 +11,7 @@ import {
   Button,
   SplitButton,
   Menu,
+  MenuButton,
   MenuItem,
   MenuList,
   MenuPopover,
@@ -31,45 +32,97 @@ const categoriesTitles: Record<string, string> = {
 
 type Meeting = {
   title: string;
-  date: string;
-  properties: string[];
+  upcomingTitle?: string;
+  recentTitle?: string;
+  startDate: string;
+  endDate: string;
+  properties?: string[];
 };
 const meetings: Meeting[] = [
   {
     title: 'Weekly summary #3',
-    date: '2023-10-06 14:30',
-    properties: ['includingContent', 'recorded'],
+    startDate: '2023-10-06 14:30',
+    endDate: '2023-10-06 15:30',
+  },
+  {
+    title: 'Meeting with manager',
+    startDate: '2023-10-03 8:00',
+    endDate: '2023-10-03 9:00',
   },
   {
     title: 'Monthly townhall',
-    date: '2023-10-01 11:00',
+    startDate: '2023-10-01 10:00',
+    endDate: '2023-10-01 11:00',
     properties: ['includingContent', 'recorded', 'mentionsOfYou'],
   },
   {
     title: 'Weekly summary #2',
-    date: '2023-09-29 14:30',
+    startDate: '2023-09-29 14:30',
+    endDate: '2023-09-29 15:30',
     properties: ['includingContent', 'recorded'],
   },
   {
     title: 'Meeting with John',
-    date: '2023-09-28 10:15',
+    startDate: '2023-09-28 10:15',
+    endDate: '2023-09-28 11:15',
     properties: ['includingContent', 'missed', 'withYou'],
   },
   {
     title: 'Weekly summary #1',
-    date: '2023-09-22 14:30',
+    startDate: '2023-09-22 14:30',
+    endDate: '2023-09-22 15:30',
     properties: ['includingContent', 'missed', 'recorded', 'mentionsOfYou'],
   },
 ];
 
+const getFormattedTime = (date: Date) => {
+  let hours = date.getHours();
+  let minutes = (date.getMinutes()).toString();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = (hours === 0) ? 12 : hours; // The hour 0 should be 12
+  minutes = minutes.padStart(2, '0');
+  const time = `${hours}:${minutes} ${ampm}`;
+  return time;
+}
+
 export const AccessibleMeet: React.FC = () => {
-  const threeUpcomingMeetingsTitles = React.useMemo(() => {
-    const upcomingMeetings = meetings.filter(meeting => {
-      const meetingDate = new Date(meeting.date);
-      return meetingDate > todayDate;
-    }).map(meeting => meeting.title);
-    return upcomingMeetings.slice(0, 3);
-  }, []);
+const [selectedUpcomingMeetingTitle, setSelectedUpcomingMeetingTitle] = React.useState<string | undefined>();
+const [selectedRecentMeetingTitle, setSelectedRecentMeetingTitle] = React.useState<string | undefined>();
+
+  const threeUpcomingMeetingsItems = React.useMemo(() => {
+    let upcomingMeetings = meetings.filter(meeting => {
+      const meetingEndDate = new Date(meeting.endDate);
+      return meetingEndDate > todayDate;
+    });
+    upcomingMeetings = upcomingMeetings.slice(-3, 3);
+
+    return upcomingMeetings.map((meeting, index) => {
+      const meetingStartDate= new Date(meeting.startDate);
+      const meetingEndDate= new Date(meeting.endDate);
+      const dayOfWeekOptions: Intl.DateTimeFormatOptions = { weekday: 'long' };
+      const monthOptions: Intl.DateTimeFormatOptions = { month: 'long' };
+      const dayOfWeek = new Intl.DateTimeFormat(dateLocale, dayOfWeekOptions).format(meetingStartDate);
+      const month = new Intl.DateTimeFormat(dateLocale, monthOptions).format(meetingStartDate);
+      const dayOfMonth = meetingStartDate.getDate();
+      const year = meetingStartDate.getFullYear();
+      const startTime = getFormattedTime(meetingStartDate);
+      const endTime = getFormattedTime(meetingEndDate);
+      const upcomingTitle = `${meeting.title}, ${dayOfWeek}, ${month} ${dayOfMonth}, ${year}, ${startTime} to ${endTime}`;
+      return {
+        key: index,
+        title: meeting.title,
+        content: upcomingTitle,
+        onFocus: () => {
+          setSelectedUpcomingMeetingTitle(meeting.title);
+      },
+    };
+    });
+  }, [setSelectedUpcomingMeetingTitle]);
+
+  React.useEffect(() => {
+    setSelectedUpcomingMeetingTitle(threeUpcomingMeetingsItems[0].title);
+  }, [threeUpcomingMeetingsItems, setSelectedUpcomingMeetingTitle]);
 
   const categorizedMeetings = React.useMemo(() => {
     const result: Record<string, Meeting[]> = {
@@ -78,33 +131,41 @@ export const AccessibleMeet: React.FC = () => {
       lastWeek: [],
     };
     meetings.forEach(meeting => {
-      const meetingDate = new Date(meeting.date);
-      const meetingDateStr = meetingDate.toISOString().split('T')[0];
-      const todayDateStr = todayDate.toISOString().split('T')[0];
-      const isToday = (meetingDate < todayDate) && (meetingDateStr === todayDateStr);
-      const yesterdayDate = new Date(todayDateStr);
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const beforeWeekDate = new Date(todayDate);
-      beforeWeekDate.setDate(todayDate.getDate() - 7);
-      if (isToday) {
+      const meetingStartDate = new Date(meeting.startDate);
+      const meetingEndDate = new Date(meeting.endDate);
+      const meetingEndDateStr = meetingEndDate.toISOString().split('T')[0];
+      const todayStartDateStr = todayDate.toISOString().split('T')[0];
+      const isTodayUntilNow = (meetingEndDate < todayDate) && (meetingEndDateStr === todayStartDateStr);
+      const yesterdayStartDate = new Date(todayStartDateStr);
+      yesterdayStartDate.setDate(yesterdayStartDate.getDate() - 1);
+      const beforeWeekStartDate = new Date(todayDate);
+      beforeWeekStartDate.setDate(todayDate.getDate() - 7);
+
+      // Add title extended with meeting start and end times
+      const startTime = getFormattedTime(meetingStartDate);
+      const endTime = getFormattedTime(meetingEndDate);
+meeting.recentTitle = `${meeting.title}, ${startTime} to ${endTime}`;;
+
+// Categorize meetings
+      if (isTodayUntilNow) {
         result.today.push(meeting);
-      } else if ((meetingDate < todayDate) && (meetingDate >= yesterdayDate)) {
+      } else if ((meetingEndDate < todayDate) && (meetingEndDate >= yesterdayStartDate)) {
         result.yesterday.push(meeting);
-      } else if ((meetingDate < todayDate) && (meetingDate >= beforeWeekDate)) {
+      } else if ((meetingEndDate < todayDate) && (meetingEndDate >= beforeWeekStartDate)) {
         result.lastWeek.push(meeting);
-      } else if (meetingDate < todayDate) {
+      } else if (meetingEndDate < todayDate) {
         const dayOfWeekOptions: Intl.DateTimeFormatOptions = { weekday: 'long' };
         const monthOptions: Intl.DateTimeFormatOptions = { month: 'long' };
-        const dayOfWeek = new Intl.DateTimeFormat(dateLocale, dayOfWeekOptions).format(meetingDate);
-        const dayOfMonth = meetingDate.getDate();
-        const month = new Intl.DateTimeFormat(dateLocale, monthOptions).format(meetingDate);
+        const dayOfWeek = new Intl.DateTimeFormat(dateLocale, dayOfWeekOptions).format(meetingStartDate);
+        const dayOfMonth = meetingStartDate.getDate();
+        const month = new Intl.DateTimeFormat(dateLocale, monthOptions).format(meetingStartDate);
         const categoryTitle = `${dayOfWeek}, ${month} ${dayOfMonth}`;
-        if (meetingDateStr in result) {
-          result[meetingDateStr].push(meeting);
+        if (meetingEndDateStr in result) {
+          result[meetingEndDateStr].push(meeting);
         } else {
-          categories.push(meetingDateStr);
-          categoriesTitles[meetingDateStr] = categoryTitle;
-          result[meetingDateStr] = [meeting];
+          categories.push(meetingEndDateStr);
+          categoriesTitles[meetingEndDateStr] = categoryTitle;
+          result[meetingEndDateStr] = [meeting];
         }
       }
     });
@@ -119,6 +180,14 @@ export const AccessibleMeet: React.FC = () => {
     }
     return result;
   }, []);
+
+  React.useEffect(() => {
+    const firstCategoryWithMeetings = categories.find(category => {
+return categorizedMeetings[category].length > 0;
+    }) as string;
+    const title = categorizedMeetings[firstCategoryWithMeetings][0].title;
+    setSelectedRecentMeetingTitle(title);
+  }, [setSelectedRecentMeetingTitle, categorizedMeetings]);
 
   return (
     <>
@@ -153,25 +222,55 @@ export const AccessibleMeet: React.FC = () => {
 
         <h2>Up next</h2>
         <Button>Open my calendar</Button>
-        <Button disabledFocusable={true} aria-describedby="lastMeetings-hint">Previous meetings</Button>
-        <Button aria-describedby="lastMeetings-hint">Next meetings</Button>
-        <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
+        <Button disabledFocusable={true}>Previous meetings</Button>
+        <Button>Next meetings</Button>
 
         <List
           selectable
-          items={threeUpcomingMeetingsTitles}
+          items={threeUpcomingMeetingsItems}
           aria-label="Upcoming meetings"
         />
 
+<div role="group" aria-label={`${selectedUpcomingMeetingTitle} meeting options`}>
+<Button>View details</Button>
+<Menu>
+    <MenuTrigger disableButtonEnhancement>
+      <MenuButton>RSVP</MenuButton>
+    </MenuTrigger>
+    <MenuPopover>
+      <MenuList>
+        <MenuItem>Respond to occurrence</MenuItem>
+        <MenuItem>Respond to series</MenuItem>
+      </MenuList>
+    </MenuPopover>
+  </Menu>
+<Button>Chat with participants</Button>
+<Menu>
+    <MenuTrigger disableButtonEnhancement>
+      <MenuButton>More options</MenuButton>
+    </MenuTrigger>
+    <MenuPopover>
+      <MenuList>
+        <MenuItem>View meeting details</MenuItem>
+        <MenuItem>Copy meeting link</MenuItem>
+      </MenuList>
+    </MenuPopover>
+  </Menu>
+  </div>
+
         <h2>Recent</h2>
-        <Tree aria-label="All meetings">
+        <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
+        <Tree
+        aria-label="All meetings"
+        aria-describedby="lastMeetings-hint"
+        >
           {categories.map(category => (
             <TreeItem itemType="branch">
               <TreeItemLayout>{categoriesTitles[category]}</TreeItemLayout>
               <Tree>
                 {categorizedMeetings[category].map(meeting => (
                   <TreeItem itemType="leaf">
-                    <TreeItemLayout>{meeting.title}</TreeItemLayout>
+                    <TreeItemLayout>{meeting.recentTitle}</TreeItemLayout>
                   </TreeItem>
                 ))}
               </Tree>
@@ -179,6 +278,11 @@ export const AccessibleMeet: React.FC = () => {
           ))}
           </Tree>
 
+          <div role="group" aria-label={`${selectedRecentMeetingTitle} meeting options`}>
+            <Button>Agenda and notes</Button>
+            <Button>Chat with participants</Button>
+            <Button>View recap</Button>
+    </div>
     </div>
     </>
   );
