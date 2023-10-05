@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { AccessibleMeetBase } from './AccessibleMeetBase';
 
-export const AccessibleMeet: React.FC = () => {
+export const AccessibleMeetUsingLists: React.FC = () => {
 
   return (
-    <>
-      <AccessibleMeetBase variant="tree" />
-    </>
+      <AccessibleMeetBase variant="lists" />
   );
 };

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { UpcomingMeetingsListRenderer, RecentMeetingsTreeRenderer } from './AccessibleMeetTreeRenderer';
+import { UpcomingMeetingsGridRenderer, RecentMeetingsTreeGridRenderer } from './AccessibleMeetGridsRenderer';
+import { UpcomingMeetingsListRenderer, RecentMeetingsTreeListRenderer } from './AccessibleMeetListsRenderer';
 
 import {
   Button,
@@ -207,15 +208,21 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
         <Button disabledFocusable={true}>Previous meetings</Button>
         <Button>Next meetings</Button>
 
-        {variant === 'tree' && (
+        {variant === 'grids' && (
+          <UpcomingMeetingsGridRenderer threeUpcomingMeetings={threeUpcomingMeetings} />
+        )}
+        {variant === 'lists' && (
           <UpcomingMeetingsListRenderer threeUpcomingMeetings={threeUpcomingMeetings} />
         )}
 
         <h2>Recent</h2>
         <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
 
-        {variant === 'tree' && (
-        <RecentMeetingsTreeRenderer recentMeetings={recentMeetings} />
+        {variant === 'grids' && (
+        <RecentMeetingsTreeGridRenderer recentMeetings={recentMeetings} />
+        )}
+        {variant === 'lists' && (
+        <RecentMeetingsTreeListRenderer recentMeetings={recentMeetings} />
         )}
       </div>
     </>

@@ -85,7 +85,7 @@ export const UpcomingMeetingsListRenderer: React.FC<IUpcomingMeetingsListRendere
 interface IRecentMeetingsTreeRendererrerProps {
   recentMeetings: RecentMeetings;
 }
-export const RecentMeetingsTreeRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentMeetings }) => {
+export const RecentMeetingsTreeListRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentMeetings }) => {
   const [selectedRecentMeetingTitle, setSelectedRecentMeetingTitle] = React.useState<string | undefined>();
 
   React.useEffect(() => {
