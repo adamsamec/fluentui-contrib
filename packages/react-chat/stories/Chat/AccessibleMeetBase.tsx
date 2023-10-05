@@ -23,15 +23,7 @@ export const categoriesTitles: Record<string, string> = {
   lastWeek: 'Last week',
 };
 
-type Meeting = {
-  title: string;
-  upcomingTitle?: string;
-  recentTitle?: string;
-  startDate: string;
-  endDate: string;
-  properties?: string[];
-};
-const meetings: Meeting[] = [
+const meetings = [
   {
     title: 'Weekly summary #3',
     startDate: '2023-10-06 14:30',
@@ -68,7 +60,16 @@ const meetings: Meeting[] = [
   },
 ];
 
-export type CategorizedRecentMeetings = Record<string, Meeting[]>;
+export type UpcomingMeetings = {
+  title: string;
+  titleWithDateAndTime: string;
+}[];
+
+export type RecentMeetings = Record<string, {
+  title: string;
+  titleWithTime: string;
+  properties?: string[];
+}[]>;
 
 const getFormattedTime = (date: Date) => {
   let hours = date.getHours();
@@ -85,17 +86,14 @@ interface IAccessibleMeetBaseProps {
   variant: string;
 }
 export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant }) => {
-  const [selectedUpcomingMeetingTitle, setSelectedUpcomingMeetingTitle] = React.useState<string | undefined>();
-  const [selectedRecentMeetingTitle, setSelectedRecentMeetingTitle] = React.useState<string | undefined>();
-
-  const threeUpcomingMeetingsItems = React.useMemo(() => {
+  const threeUpcomingMeetings = React.useMemo(() => {
     let upcomingMeetings = meetings.filter(meeting => {
       const meetingEndDate = new Date(meeting.endDate);
       return meetingEndDate > nowDate;
     });
     upcomingMeetings = upcomingMeetings.slice(-3, 3);
 
-    return upcomingMeetings.map((meeting, index) => {
+    return upcomingMeetings.map(meeting => {
       const meetingStartDate = new Date(meeting.startDate);
       const meetingEndDate = new Date(meeting.endDate);
       const dayOfWeekOptions: Intl.DateTimeFormatOptions = { weekday: 'long' };
@@ -106,24 +104,16 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
       const year = meetingStartDate.getFullYear();
       const startTime = getFormattedTime(meetingStartDate);
       const endTime = getFormattedTime(meetingEndDate);
-      const upcomingTitle = `${meeting.title}, ${dayOfWeek}, ${month} ${dayOfMonth}, ${year}, ${startTime} to ${endTime}`;
+      const titleWithDateAndTime = `${meeting.title}, ${dayOfWeek}, ${month} ${dayOfMonth}, ${year}, ${startTime} to ${endTime}`;
       return {
-        key: index,
         title: meeting.title,
-        content: upcomingTitle,
-        onFocus: () => {
-          setSelectedUpcomingMeetingTitle(meeting.title);
-        },
+        titleWithDateAndTime,
       };
     });
-  }, [setSelectedUpcomingMeetingTitle]);
+  }, []);
 
-  React.useEffect(() => {
-    setSelectedUpcomingMeetingTitle(threeUpcomingMeetingsItems[0].title);
-  }, [threeUpcomingMeetingsItems, setSelectedUpcomingMeetingTitle]);
-
-  const categorizedRecentMeetings = React.useMemo(() => {
-    const result: CategorizedRecentMeetings = {
+  const recentMeetings = React.useMemo(() => {
+    const result: RecentMeetings = {
       today: [],
       yesterday: [],
       lastWeek: [],
@@ -138,19 +128,22 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
       yesterdayStartDate.setDate(yesterdayStartDate.getDate() - 1);
       const beforeWeekStartDate = new Date(nowDate);
       beforeWeekStartDate.setDate(nowDate.getDate() - 7);
-
-      // Add title extended with meeting start and end times
       const startTime = getFormattedTime(meetingStartDate);
       const endTime = getFormattedTime(meetingEndDate);
-      meeting.recentTitle = `${meeting.title}, ${startTime} to ${endTime}`;;
 
-      // Categorize meetings
+      // Create the upcoming meeting
+      const upcomingMeeting = {
+        ...meeting,
+        titleWithTime: `${meeting.title}, ${startTime} to ${endTime}`,
+      };
+
+      // Categorize the upcoming meeting
       if (isTodayUntilNow) {
-        result.today.push(meeting);
+        result.today.push(upcomingMeeting);
       } else if ((meetingEndDate < nowDate) && (meetingEndDate >= yesterdayStartDate)) {
-        result.yesterday.push(meeting);
+        result.yesterday.push(upcomingMeeting);
       } else if ((meetingEndDate < nowDate) && (meetingEndDate >= beforeWeekStartDate)) {
-        result.lastWeek.push(meeting);
+        result.lastWeek.push(upcomingMeeting);
       } else if (meetingEndDate < nowDate) {
         const dayOfWeekOptions: Intl.DateTimeFormatOptions = { weekday: 'long' };
         const monthOptions: Intl.DateTimeFormatOptions = { month: 'long' };
@@ -159,33 +152,24 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
         const month = new Intl.DateTimeFormat(dateLocale, monthOptions).format(meetingStartDate);
         const categoryTitle = `${dayOfWeek}, ${month} ${dayOfMonth}`;
         if (meetingEndDateStr in result) {
-          result[meetingEndDateStr].push(meeting);
+          result[meetingEndDateStr].push(upcomingMeeting);
         } else {
           categories.push(meetingEndDateStr);
           categoriesTitles[meetingEndDateStr] = categoryTitle;
-          result[meetingEndDateStr] = [meeting];
+          result[meetingEndDateStr] = [upcomingMeeting];
         }
       }
     });
-    if (result.lastWeek.length > 0) {
-      categories.unshift('lastWeek');
-    }
-    if (result.yesterday.length > 0) {
-      categories.unshift('yesterday');
-    }
-    if (result.today.length > 0) {
-      categories.unshift('today');
-    }
+
+    // Insert non-date category identifiers into the categories list in a right order if they contain at least one meeting
+    ['lastWeek', 'yesterday', 'today'].forEach(category => {
+      if (result[category].length > 0) {
+        categories.unshift(category);
+      }
+    });
+    
     return result;
   }, []);
-
-  React.useEffect(() => {
-    const firstCategoryWithMeetings = categories.find(category => {
-      return categorizedRecentMeetings[category].length > 0;
-    }) as string;
-    const title = categorizedRecentMeetings[firstCategoryWithMeetings][0].title;
-    setSelectedRecentMeetingTitle(title);
-  }, [setSelectedRecentMeetingTitle, categorizedRecentMeetings]);
 
   return (
     <>
@@ -223,19 +207,16 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
         <Button disabledFocusable={true}>Previous meetings</Button>
         <Button>Next meetings</Button>
 
-{variant === 'tree' && (
-        <UpcomingMeetingsListRenderer
-        threeUpcomingMeetingsItems={threeUpcomingMeetingsItems}
-        selectedUpcomingMeetingTitle={selectedUpcomingMeetingTitle}
-        />
-)}
+        {variant === 'tree' && (
+          <UpcomingMeetingsListRenderer threeUpcomingMeetings={threeUpcomingMeetings} />
+        )}
 
-<h2>Recent</h2>
-      <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
-      <RecentMeetingsTreeRenderer
-        categorizedRecentMeetings={categorizedRecentMeetings}
-        selectedRecentMeetingTitle={selectedRecentMeetingTitle}
-        />
+        <h2>Recent</h2>
+        <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
+
+        {variant === 'tree' && (
+        <RecentMeetingsTreeRenderer recentMeetings={recentMeetings} />
+        )}
       </div>
     </>
   );

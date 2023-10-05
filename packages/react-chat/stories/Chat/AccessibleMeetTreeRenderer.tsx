@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { categories, categoriesTitles, CategorizedRecentMeetings } from './AccessibleMeetBase';
+import { categories, categoriesTitles, UpcomingMeetings, RecentMeetings } from './AccessibleMeetBase';
 
 import {
   List,
@@ -24,13 +24,25 @@ import {
 } from '@fluentui/react-components';
 
 interface IUpcomingMeetingsListRendererProps {
-  threeUpcomingMeetingsItems: ListItemProps[];
-  selectedUpcomingMeetingTitle: string | undefined;
+  threeUpcomingMeetings: UpcomingMeetings;
 }
-export const UpcomingMeetingsListRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({
-  threeUpcomingMeetingsItems,
-  selectedUpcomingMeetingTitle,
- }) => {
+export const UpcomingMeetingsListRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({ threeUpcomingMeetings }) => {
+  const [selectedUpcomingMeetingTitle, setSelectedUpcomingMeetingTitle] = React.useState<string | undefined>();
+
+  const threeUpcomingMeetingsItems = React.useMemo(() => (
+    threeUpcomingMeetings.map((meeting, index) => (
+      {
+    key: index,
+    content: meeting.titleWithDateAndTime,
+    onFocus: () => {
+      setSelectedUpcomingMeetingTitle(meeting.title);
+    },
+  }
+  ))), [threeUpcomingMeetings, setSelectedUpcomingMeetingTitle]);
+
+  React.useEffect(() => {
+    setSelectedUpcomingMeetingTitle(threeUpcomingMeetings[0].title);
+  }, [threeUpcomingMeetings, setSelectedUpcomingMeetingTitle]);
 
   return (
     <>
@@ -71,13 +83,18 @@ export const UpcomingMeetingsListRenderer: React.FC<IUpcomingMeetingsListRendere
 };
 
 interface IRecentMeetingsTreeRendererrerProps {
-  categorizedRecentMeetings: CategorizedRecentMeetings;
-  selectedRecentMeetingTitle: string | undefined;
+  recentMeetings: RecentMeetings;
 }
-export const RecentMeetingsTreeRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({
-  categorizedRecentMeetings,
-  selectedRecentMeetingTitle,
- }) => {
+export const RecentMeetingsTreeRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentMeetings }) => {
+  const [selectedRecentMeetingTitle, setSelectedRecentMeetingTitle] = React.useState<string | undefined>();
+
+  React.useEffect(() => {
+    const firstCategoryWithMeetings = categories.find(category => {
+      return recentMeetings[category].length > 0;
+    }) as string;
+    const title = recentMeetings[firstCategoryWithMeetings][0].title;
+    setSelectedRecentMeetingTitle(title);
+  }, [recentMeetings, setSelectedRecentMeetingTitle]);
 
   return (
     <>
@@ -89,9 +106,9 @@ export const RecentMeetingsTreeRenderer: React.FC<IRecentMeetingsTreeRendererrer
           <TreeItem itemType="branch">
             <TreeItemLayout>{categoriesTitles[category]}</TreeItemLayout>
             <Tree>
-              {categorizedRecentMeetings[category].map(meeting => (
+              {recentMeetings[category].map(meeting => (
                 <TreeItem itemType="leaf">
-                  <TreeItemLayout onClick={() => alert(meeting.title)}>{meeting.recentTitle}</TreeItemLayout>
+                  <TreeItemLayout onClick={() => alert(meeting.title)}>{meeting.titleWithTime}</TreeItemLayout>
                 </TreeItem>
               ))}
             </Tree>
