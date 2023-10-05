@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { categories } from './AccessibleMeetBase';
-import { CategorizedRecentMeetings, categoriesTitles } from './AccessibleMeetBase';
+import { categories, categoriesTitles, CategorizedRecentMeetings } from './AccessibleMeetBase';
 
 import {
   List,
