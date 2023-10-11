@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { categories, categoriesTitles, UpcomingMeetings, RecentMeetings } from './AccessibleMeetBase';
+import { RecentCategory, UpcomingMeeting, RecentMeetings } from './AccessibleMeetBase';
 
 import {
   Table,
@@ -22,7 +22,7 @@ import {
 } from '@fluentui/react-components';
 
 interface IUpcomingMeetingsListRendererProps {
-  threeUpcomingMeetings: UpcomingMeetings;
+  threeUpcomingMeetings: UpcomingMeeting[];
 }
 export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({ threeUpcomingMeetings }) => {
   const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
@@ -36,18 +36,18 @@ export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendere
 
   return (
     <Table
-    role="grid"
-    noNativeElements
-    onKeyDown={onTableKeyDown}
-    aria-label="Upcoming meetings"
-    {...tableTabsterAttribute}
+      role="grid"
+      noNativeElements
+      onKeyDown={onTableKeyDown}
+      aria-label="Upcoming meetings"
+      {...tableTabsterAttribute}
     >
       <TableBody>
         {threeUpcomingMeetingsItems.map((meeting, index) => (
           <TableRow
-          key={index}
-          tabIndex={0}
-          {...tableRowTabsterAttribute}
+            key={index}
+            tabIndex={0}
+            {...tableRowTabsterAttribute}
           >
             <TableCell role="gridcell" tabIndex={0}>{meeting.title}</TableCell>
             <TableCell role="gridcell"><Button>View details</Button></TableCell>
@@ -86,35 +86,55 @@ export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendere
 };
 
 interface IRecentMeetingsTreeRendererrerProps {
+  recentCategories: RecentCategory[];
   recentMeetings: RecentMeetings;
 }
-export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentMeetings }) => {
+export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentCategories, recentMeetings }) => {
   const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
 
+  const handleTreeGridKeyDown = React.useCallback((event: React.KeyboardEvent) => {
+    const element = event.target as HTMLElement;
+    if (element.role === 'row') {
+    const level = element.getAttribute('aria-level');
+  }
+
+    onTableKeyDown(event);
+  }, [onTableKeyDown]);
+
   return (
+    <>
       <Table
-      role="grid"
-      noNativeElements
-      onKeyDown={onTableKeyDown}
+        role="treegrid"
+        noNativeElements
+        onKeyDown={handleTreeGridKeyDown}
         aria-label="All meetings"
         aria-describedby="lastMeetings-hint"
         {...tableTabsterAttribute}
       >
         <TableBody>
-          {categories.map((category, categoryIndex) => (
+          {recentCategories.map(category => (
             <>
               <TableRow
-              key={categoryIndex}
-              tabIndex={0}
-              {...tableRowTabsterAttribute}
-              >
-                <TableCell role="gridcell" tabIndex={0} colSpan={4}>{categoriesTitles[category]}</TableCell>
-              </TableRow>
-              {recentMeetings[category].map((meeting, meetingIndex) => (
-                <TableRow
-                key={meetingIndex}
+                key={category.id}
+                role="row"
                 tabIndex={0}
+                aria-level={1}
                 {...tableRowTabsterAttribute}
+              >
+                <TableCell
+                  role="gridcell"
+                  tabIndex={0}
+                  colSpan={4}
+                >{category.title}</TableCell>
+              </TableRow>
+              {recentMeetings[category.id].map((meeting) => (
+                <TableRow
+                  key={meeting.id}
+                  id={meeting.id}
+                  role="row"
+                  tabIndex={0}
+                  aria-level={2}
+                  {...tableRowTabsterAttribute}
                 >
                   <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
                   <TableCell role="gridcell">        <Button>Agenda and notes</Button></TableCell>
@@ -127,5 +147,6 @@ export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendere
           ))}
         </TableBody>
       </Table>
+    </>
   );
 };

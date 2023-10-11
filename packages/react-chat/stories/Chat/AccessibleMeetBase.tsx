@@ -17,7 +17,6 @@ import {
 const dateLocale = 'en-US';
 const nowDate = new Date('2023-10-01 12:30');
 
-export const categories: string[] = [];
 export const categoriesTitles: Record<string, string> = {
   today: 'Today',
   yesterday: 'Yesterday',
@@ -61,12 +60,19 @@ const meetings = [
   },
 ];
 
-export type UpcomingMeetings = {
+export type UpcomingMeeting = {
   title: string;
   titleWithDateAndTime: string;
-}[];
+};
+
+export type RecentCategory = {
+id: string;
+title: string;
+expanded:boolean;
+};
 
 export type RecentMeetings = Record<string, {
+  id: string;
   title: string;
   titleWithTime: string;
   properties?: string[];
@@ -87,6 +93,8 @@ interface IAccessibleMeetBaseProps {
   variant: string;
 }
 export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant }) => {
+  const recentCategoriesRef = React.useRef<RecentCategory[]>([]);
+
   const threeUpcomingMeetings = React.useMemo(() => {
     let upcomingMeetings = meetings.filter(meeting => {
       const meetingEndDate = new Date(meeting.endDate);
@@ -119,7 +127,7 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
       yesterday: [],
       lastWeek: [],
     };
-    meetings.forEach(meeting => {
+    meetings.forEach((meeting, index) => {
       const meetingStartDate = new Date(meeting.startDate);
       const meetingEndDate = new Date(meeting.endDate);
       const meetingEndDateStr = meetingEndDate.toISOString().split('T')[0];
@@ -135,6 +143,7 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
       // Create the upcoming meeting
       const upcomingMeeting = {
         ...meeting,
+        id: `recentMeeting${index}`,
         titleWithTime: `${meeting.title}, ${startTime} to ${endTime}`,
       };
 
@@ -155,22 +164,29 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
         if (meetingEndDateStr in result) {
           result[meetingEndDateStr].push(upcomingMeeting);
         } else {
-          categories.push(meetingEndDateStr);
-          categoriesTitles[meetingEndDateStr] = categoryTitle;
+          recentCategoriesRef.current.push({
+            id: meetingEndDateStr,
+            title: categoryTitle,
+            expanded: false,
+          });
           result[meetingEndDateStr] = [upcomingMeeting];
         }
       }
     });
 
-    // Insert non-date category identifiers into the categories list in a right order if they contain at least one meeting
-    ['lastWeek', 'yesterday', 'today'].forEach(category => {
-      if (result[category].length > 0) {
-        categories.unshift(category);
+    // Insert non-date categories into the categories list in a right order if they contain at least one meeting
+    ['lastWeek', 'yesterday', 'today'].forEach(categoryId => {
+      if (result[categoryId].length > 0) {
+        recentCategoriesRef.current.unshift({
+          id: categoryId,
+          title: categoriesTitles[categoryId],
+          expanded: false,
+        });
       }
     });
     
     return result;
-  }, []);
+  }, [recentCategoriesRef]);
 
   return (
     <>
@@ -219,10 +235,10 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
         <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
 
         {variant === 'grids' && (
-        <RecentMeetingsTreeGridRenderer recentMeetings={recentMeetings} />
+        <RecentMeetingsTreeGridRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
         )}
         {variant === 'lists' && (
-        <RecentMeetingsTreeListRenderer recentMeetings={recentMeetings} />
+        <RecentMeetingsTreeListRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
         )}
       </div>
     </>

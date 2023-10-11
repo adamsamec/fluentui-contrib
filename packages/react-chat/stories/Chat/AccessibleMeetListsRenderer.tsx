@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { categories, categoriesTitles, UpcomingMeetings, RecentMeetings } from './AccessibleMeetBase';
+import { RecentCategory, UpcomingMeeting, RecentMeetings } from './AccessibleMeetBase';
 
 import {
   List,
@@ -24,7 +24,7 @@ import {
 } from '@fluentui/react-components';
 
 interface IUpcomingMeetingsListRendererProps {
-  threeUpcomingMeetings: UpcomingMeetings;
+  threeUpcomingMeetings: UpcomingMeeting[];
 }
 export const UpcomingMeetingsListRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({ threeUpcomingMeetings }) => {
   const [selectedUpcomingMeetingTitle, setSelectedUpcomingMeetingTitle] = React.useState<string | undefined>();
@@ -83,18 +83,19 @@ export const UpcomingMeetingsListRenderer: React.FC<IUpcomingMeetingsListRendere
 };
 
 interface IRecentMeetingsTreeRendererrerProps {
+  recentCategories: RecentCategory[];
   recentMeetings: RecentMeetings;
 }
-export const RecentMeetingsTreeListRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentMeetings }) => {
+export const RecentMeetingsTreeListRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentCategories, recentMeetings }) => {
   const [selectedRecentMeetingTitle, setSelectedRecentMeetingTitle] = React.useState<string | undefined>();
 
   React.useEffect(() => {
-    const firstCategoryWithMeetings = categories.find(category => {
-      return recentMeetings[category].length > 0;
-    }) as string;
+    const firstCategoryWithMeetings = (recentCategories.find(category => {
+      return recentMeetings[category.id].length > 0;
+    }) as RecentCategory).id;
     const title = recentMeetings[firstCategoryWithMeetings][0].title;
     setSelectedRecentMeetingTitle(title);
-  }, [recentMeetings, setSelectedRecentMeetingTitle]);
+  }, [recentCategories, recentMeetings, setSelectedRecentMeetingTitle]);
 
   return (
     <>
@@ -102,11 +103,14 @@ export const RecentMeetingsTreeListRenderer: React.FC<IRecentMeetingsTreeRendere
         aria-label="All meetings"
         aria-describedby="lastMeetings-hint"
       >
-        {categories.map(category => (
-          <TreeItem itemType="branch">
-            <TreeItemLayout>{categoriesTitles[category]}</TreeItemLayout>
+        {recentCategories.map(category => (
+          <TreeItem
+          key={category.id}
+          itemType="branch"
+          >
+            <TreeItemLayout>{category.title}</TreeItemLayout>
             <Tree>
-              {recentMeetings[category].map(meeting => (
+              {recentMeetings[category.id].map(meeting => (
                 <TreeItem itemType="leaf">
                   <TreeItemLayout onClick={() => alert(meeting.title)}>{meeting.titleWithTime}</TreeItemLayout>
                 </TreeItem>
