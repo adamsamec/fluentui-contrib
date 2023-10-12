@@ -2,6 +2,7 @@ import * as React from 'react';
 import { RecentCategory, UpcomingMeeting, RecentMeetings } from './AccessibleMeetBase';
 
 import {
+  Popover,
   Table,
   TableBody,
   TableRow,
@@ -90,16 +91,49 @@ interface IRecentMeetingsTreeRendererrerProps {
   recentMeetings: RecentMeetings;
 }
 export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentCategories, recentMeetings }) => {
+const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
+
   const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
 
+  const changeRecentCategoryExpandedState = React.useCallback((id: string, expanded: boolean) => {
+    recentCategoriesState.find(category => {
+      if (id === category.id) {
+        category.expanded = expanded;
+        return true;
+      }
+      return false;
+    });
+    setRecentCategoryState([...recentCategoriesState]);
+  }, [recentCategoriesState]);
+
   const handleTreeGridKeyDown = React.useCallback((event: React.KeyboardEvent) => {
+    let callTabsterKeyboardHandler = true;
     const element = event.target as HTMLElement;
     if (element.role === 'row') {
-    const level = element.getAttribute('aria-level');
-  }
-
+      const isModifierDown = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+      if (!isModifierDown) {
+        const selectedRowId = element.id;
+        const level = element.getAttribute('aria-level');
+        if (event.key === 'ArrowRight' && level === '1') {
+          changeRecentCategoryExpandedState(selectedRowId, true);
+          callTabsterKeyboardHandler = false;
+        } else if (event.key === 'ArrowLeft' && level === '1') {
+          changeRecentCategoryExpandedState(selectedRowId, false);
+        } else if (event.key === 'ArrowLeft' && level === '2') {
+          const categoryToFocus = recentCategories.find(category => {
+            return !!recentMeetings[category.id].find(meeting => {
+              return meeting.id === selectedRowId;
+            });
+          }) as RecentCategory;
+          const categoryRowToFocus = document.getElementById(categoryToFocus.id) as HTMLTableRowElement;
+          categoryRowToFocus.focus();
+        }
+      }
+    }
+    if (callTabsterKeyboardHandler) {
     onTableKeyDown(event);
-  }, [onTableKeyDown]);
+    }
+  }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown]);
 
   return (
     <>
@@ -116,6 +150,7 @@ export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendere
             <>
               <TableRow
                 key={category.id}
+                id={category.id}
                 role="row"
                 tabIndex={0}
                 aria-level={1}
@@ -127,7 +162,7 @@ export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendere
                   colSpan={4}
                 >{category.title}</TableCell>
               </TableRow>
-              {recentMeetings[category.id].map((meeting) => (
+              {category.expanded && recentMeetings[category.id].map((meeting) => (
                 <TableRow
                   key={meeting.id}
                   id={meeting.id}
@@ -142,7 +177,6 @@ export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendere
                   <TableCell role="gridcell"><Button>View recap</Button></TableCell>
                 </TableRow>
               ))}
-
             </>
           ))}
         </TableBody>

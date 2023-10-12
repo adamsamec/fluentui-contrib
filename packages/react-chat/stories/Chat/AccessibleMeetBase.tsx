@@ -76,6 +76,7 @@ export type RecentMeetings = Record<string, {
   title: string;
   titleWithTime: string;
   properties?: string[];
+  revealed: boolean;
 }[]>;
 
 const getFormattedTime = (date: Date) => {
@@ -140,20 +141,21 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
       const startTime = getFormattedTime(meetingStartDate);
       const endTime = getFormattedTime(meetingEndDate);
 
-      // Create the upcoming meeting
-      const upcomingMeeting = {
+      // Create the recent meeting
+      const recentMeeting = {
         ...meeting,
         id: `recentMeeting${index}`,
         titleWithTime: `${meeting.title}, ${startTime} to ${endTime}`,
+        revealed: true,
       };
 
-      // Categorize the upcoming meeting
+      // Categorize the recent meeting
       if (isTodayUntilNow) {
-        result.today.push(upcomingMeeting);
+        result.today.push(recentMeeting);
       } else if ((meetingEndDate < nowDate) && (meetingEndDate >= yesterdayStartDate)) {
-        result.yesterday.push(upcomingMeeting);
+        result.yesterday.push(recentMeeting);
       } else if ((meetingEndDate < nowDate) && (meetingEndDate >= beforeWeekStartDate)) {
-        result.lastWeek.push(upcomingMeeting);
+        result.lastWeek.push(recentMeeting);
       } else if (meetingEndDate < nowDate) {
         const dayOfWeekOptions: Intl.DateTimeFormatOptions = { weekday: 'long' };
         const monthOptions: Intl.DateTimeFormatOptions = { month: 'long' };
@@ -162,19 +164,19 @@ export const AccessibleMeetBase: React.FC<IAccessibleMeetBaseProps> = ({ variant
         const month = new Intl.DateTimeFormat(dateLocale, monthOptions).format(meetingStartDate);
         const categoryTitle = `${dayOfWeek}, ${month} ${dayOfMonth}`;
         if (meetingEndDateStr in result) {
-          result[meetingEndDateStr].push(upcomingMeeting);
+          result[meetingEndDateStr].push(recentMeeting);
         } else {
           recentCategoriesRef.current.push({
             id: meetingEndDateStr,
             title: categoryTitle,
             expanded: false,
           });
-          result[meetingEndDateStr] = [upcomingMeeting];
+          result[meetingEndDateStr] = [recentMeeting];
         }
       }
     });
 
-    // Insert non-date categories into the categories list in a right order if they contain at least one meeting
+    // Insert relative-date categories into the recentCategories list in a right order if they contain at least one meeting
     ['lastWeek', 'yesterday', 'today'].forEach(categoryId => {
       if (result[categoryId].length > 0) {
         recentCategoriesRef.current.unshift({
