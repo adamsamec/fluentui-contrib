@@ -2,7 +2,6 @@ import * as React from 'react';
 import { RecentCategory, UpcomingMeeting, RecentMeetings } from './AccessibleMeetBase';
 
 import {
-  Popover,
   Table,
   TableBody,
   TableRow,
