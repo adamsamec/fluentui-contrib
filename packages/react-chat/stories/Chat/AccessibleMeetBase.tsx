@@ -17,20 +17,25 @@ import {
   ToolbarButton,
 } from '@fluentui/react-components';
 
-const dateLocale = 'en-US';
-const nowDate = new Date('2023-10-01 12:30');
-
 export const categoriesTitles: Record<string, string> = {
   today: 'Today',
   yesterday: 'Yesterday',
   lastWeek: 'Last week',
 };
 
+const dateLocale = 'en-US';
+const nowDate = new Date('2023-10-01 12:30');
+
 const meetings = [
   {
     title: 'Weekly summary #3',
     startDate: '2023-10-06 14:30',
     endDate: '2023-10-06 15:30',
+  },
+  {
+    title: 'Mandatory  training #2',
+    startDate: '2023-10-03 14:30',
+    endDate: '2023-10-03 15:30',
   },
   {
     title: 'Meeting with manager',
@@ -50,16 +55,28 @@ const meetings = [
     properties: ['includingContent', 'recorded'],
   },
   {
+    title: 'Mandatory training #1',
+    startDate: '2023-09-29 9:00',
+    endDate: '2023-09-29 10:00',
+    properties: ['includingContent', 'recorded', 'withYou'],
+  },
+  {
     title: 'Meeting with John',
     startDate: '2023-09-28 10:15',
     endDate: '2023-09-28 11:15',
-    properties: ['includingContent', 'missed', 'withYou'],
+    properties: ['includingContent', 'missed'],
   },
   {
     title: 'Weekly summary #1',
     startDate: '2023-09-22 14:30',
     endDate: '2023-09-22 15:30',
     properties: ['includingContent', 'missed', 'recorded', 'mentionsOfYou'],
+  },
+  {
+    title: 'Meeting with Kate',
+    startDate: '2023-09-22 13:30',
+    endDate: '2023-09-22 14:15',
+    properties: ['includingContent'],
   },
 ];
 
