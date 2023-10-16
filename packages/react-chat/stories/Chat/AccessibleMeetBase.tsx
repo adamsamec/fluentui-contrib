@@ -15,6 +15,10 @@ import {
   MenuTrigger,
   Toolbar,
   ToolbarButton,
+  TabList,
+  Tab,
+  Field,
+  Input,
 } from '@fluentui/react-components';
 
 export const categoriesTitles: Record<string, string> = {
@@ -275,6 +279,17 @@ label="Use cell-only navigation"
 
         <h2>Recent</h2>
         <div id="lastMeetings-hint" style={{ display: 'none' }}>Includes all your meetings in the last 30 days.</div>
+
+<TabList>
+<Tab value="all">All Meetings</Tab>
+<Tab value="includingContent">Meetings including content</Tab>
+<Tab value="missed">Meetings you missed</Tab>
+<Tab value="recorded">Recorded Meetings</Tab>
+<Tab value="mentions">Mentions of you</Tab>
+</TabList>
+<Field label="Filter by keyword">
+  <Input />
+</Field>
 
         {variant === 'grids' && (
         <RecentMeetingsTreeGridRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
