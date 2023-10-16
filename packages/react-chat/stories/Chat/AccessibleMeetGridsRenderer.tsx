@@ -8,6 +8,7 @@ import {
   TableCell,
   TableCellActions,
   TableCellLayout,
+  useArrowNavigationGroup,
   useTableCompositeNavigation,
   Button,
   SplitButton,
@@ -19,13 +20,32 @@ import {
   MenuTrigger,
   Toolbar,
   ToolbarButton,
+  useFluent,
 } from '@fluentui/react-components';
 
 interface IUpcomingMeetingsListRendererProps {
+  cellNavigationOnly: boolean;
   threeUpcomingMeetings: UpcomingMeeting[];
 }
-export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({ threeUpcomingMeetings }) => {
+export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({ cellNavigationOnly, threeUpcomingMeetings }) => {
+  const [tableNavigationAttribute, setTableNavigationAttribute] = React.useState({});
+  const [tableRowNavigationAttribute, setTableRowNavigationAttribute] = React.useState({});
+  const [handleTableKeyDown, setHandleTableKeyDown] = React.useState<React.KeyboardEventHandler | undefined>(undefined);
+
   const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
+  const cellTableNavigationAttribute = useArrowNavigationGroup({ axis: 'grid' });
+
+  React.useEffect(() => {
+if (cellNavigationOnly) {
+  setTableNavigationAttribute(() => cellTableNavigationAttribute);
+  setTableRowNavigationAttribute(() => {});
+  setHandleTableKeyDown(undefined);
+} else {
+  setTableNavigationAttribute(() => tableTabsterAttribute);
+  setTableRowNavigationAttribute(() => tableRowTabsterAttribute);
+setHandleTableKeyDown(() => onTableKeyDown);
+}
+  }, [cellNavigationOnly, tableTabsterAttribute, tableRowTabsterAttribute, onTableKeyDown, cellTableNavigationAttribute, setTableNavigationAttribute, setTableRowNavigationAttribute, setHandleTableKeyDown]);
 
   const threeUpcomingMeetingsItems = React.useMemo(() => (
     threeUpcomingMeetings.map(meeting => (
@@ -38,16 +58,16 @@ export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendere
     <Table
       role="grid"
       noNativeElements
-      onKeyDown={onTableKeyDown}
+      onKeyDown={handleTableKeyDown}
       aria-label="Upcoming meetings"
-      {...tableTabsterAttribute}
+      {...tableNavigationAttribute}
     >
       <TableBody>
         {threeUpcomingMeetingsItems.map((meeting, index) => (
           <TableRow
             key={index}
-            tabIndex={0}
-            {...tableRowTabsterAttribute}
+            tabIndex={cellNavigationOnly ? undefined : 0}
+            {...tableRowNavigationAttribute}
           >
             <TableCell role="gridcell" tabIndex={0}>{meeting.title}</TableCell>
             <TableCell role="gridcell"><Button>View details</Button></TableCell>
@@ -90,6 +110,7 @@ interface IRecentMeetingsTreeRendererrerProps {
   recentMeetings: RecentMeetings;
 }
 export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentCategories, recentMeetings }) => {
+  const { targetDocument } = useFluent();
 const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
 
   const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
@@ -124,7 +145,7 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
               return meeting.id === selectedRowId;
             });
           }) as RecentCategory;
-          const categoryRowToFocus = document.getElementById(categoryToFocus.id) as HTMLTableRowElement;
+          const categoryRowToFocus = targetDocument?.getElementById(categoryToFocus.id) as HTMLTableRowElement;
           categoryRowToFocus.focus();
         }
       }
@@ -132,7 +153,7 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
     if (callTabsterKeyboardHandler) {
     onTableKeyDown(event);
     }
-  }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown]);
+  }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown, targetDocument]);
 
   return (
     <>
