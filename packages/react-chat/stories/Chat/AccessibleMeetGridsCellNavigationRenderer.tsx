@@ -22,12 +22,19 @@ import {
   ToolbarButton,
   useFluent,
 } from '@fluentui/react-components';
+import {
+  createTabster,
+  getMover,
+  getGroupper,
+  getTabsterAttribute,
+  Types,
+} from "tabster";
 
-interface IUpcomingMeetingsListRendererProps {
+interface IUpcomingMeetingsGridCellNavigationRendererProps {
   cellNavigationOnly: boolean;
   threeUpcomingMeetings: UpcomingMeeting[];
 }
-export const UpcomingMeetingsGridRenderer: React.FC<IUpcomingMeetingsListRendererProps> = ({ cellNavigationOnly, threeUpcomingMeetings }) => {
+export const UpcomingMeetingsGridCellNavigationRenderer: React.FC<IUpcomingMeetingsGridCellNavigationRendererProps> = ({ cellNavigationOnly, threeUpcomingMeetings }) => {
   const [tableNavigationAttribute, setTableNavigationAttribute] = React.useState({});
   const [tableRowNavigationAttribute, setTableRowNavigationAttribute] = React.useState({});
   const [handleTableKeyDown, setHandleTableKeyDown] = React.useState<React.KeyboardEventHandler | undefined>(undefined);
@@ -105,15 +112,17 @@ setHandleTableKeyDown(() => onTableKeyDown);
   );
 };
 
-interface IRecentMeetingsTreeRendererrerProps {
+interface IRecentMeetingsGridCellNavigationRendererrerProps {
   recentCategories: RecentCategory[];
   recentMeetings: RecentMeetings;
 }
-export const RecentMeetingsTreeGridRenderer: React.FC<IRecentMeetingsTreeRendererrerProps> = ({ recentCategories, recentMeetings }) => {
+export const RecentMeetingsTreeGridCellNavigationRenderer: React.FC<IRecentMeetingsGridCellNavigationRendererrerProps> = ({ recentCategories, recentMeetings }) => {
   const { targetDocument } = useFluent();
 const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
 
-  const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
+const tabsterCore = createTabster(window);
+getMover(tabsterCore);
+getGroupper(tabsterCore);
 
   const changeRecentCategoryExpandedState = React.useCallback((id: string, expanded: boolean) => {
     recentCategoriesState.find(category => {
@@ -127,33 +136,31 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
   }, [recentCategoriesState]);
 
   const handleTreeGridKeyDown = React.useCallback((event: React.KeyboardEvent) => {
-    let callTabsterKeyboardHandler = true;
     const element = event.target as HTMLElement;
-    if (element.role === 'row') {
+    if (element.role === 'gridcell') {
       const isModifierDown = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
       if (!isModifierDown) {
-        const selectedRowId = element.id;
-        const level = element.getAttribute('aria-level');
-        if (event.key === 'ArrowRight' && level === '1') {
+        const parent =element.parentElement;
+        const isFirstChild = parent?.querySelector('*:first-child') as HTMLElement === element;
+        const isLastChild = parent?.querySelector('*:first-child') as HTMLElement === element;
+        const selectedRowId = parent?.id || '';
+        const level = parent?.getAttribute('aria-level') || 1;
+        if (event.key === 'ArrowRight' && level === '1' && isLastChild) {
           changeRecentCategoryExpandedState(selectedRowId, true);
-          callTabsterKeyboardHandler = false;
-        } else if (event.key === 'ArrowLeft' && level === '1') {
+        } else if (event.key === 'ArrowLeft' && level === '1' && isFirstChild) {
           changeRecentCategoryExpandedState(selectedRowId, false);
-        } else if (event.key === 'ArrowLeft' && level === '2') {
+        } else if (event.key === 'ArrowLeft' && level === '2' && isFirstChild) {
           const categoryToFocus = recentCategories.find(category => {
             return !!recentMeetings[category.id].find(meeting => {
               return meeting.id === selectedRowId;
             });
           }) as RecentCategory;
-          const categoryRowToFocus = targetDocument?.getElementById(categoryToFocus.id) as HTMLTableRowElement;
-          categoryRowToFocus.focus();
+          const headerCellToFocus = targetDocument?.querySelector(`#${categoryToFocus.id} > *`) as HTMLElement;
+          headerCellToFocus.focus();
         }
       }
     }
-    if (callTabsterKeyboardHandler) {
-    onTableKeyDown(event);
-    }
-  }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown, targetDocument]);
+  }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, targetDocument]);
 
   return (
     <>
@@ -163,7 +170,13 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
         onKeyDown={handleTreeGridKeyDown}
         aria-label="All meetings"
         aria-describedby="lastMeetings-hint"
-        {...tableTabsterAttribute}
+        // {...tableTabsterAttribute}
+        {...getTabsterAttribute({
+          groupper: {
+            tabbability: Types.GroupperTabbabilities.Unlimited,
+          },
+          mover: { direction: Types.MoverDirections.Grid },
+        })} 
       >
         <TableBody>
           {recentCategories.map(category => (
@@ -172,24 +185,24 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
                 key={category.id}
                 id={category.id}
                 role="row"
-                tabIndex={0}
+                // tabIndex={0}
                 aria-level={1}
-                {...tableRowTabsterAttribute}
               >
                 <TableCell
                   role="gridcell"
                   tabIndex={0}
                   colSpan={4}
-                >{category.title}</TableCell>
+                  // aria-expanded={category.expanded}
+                  >{category.title}</TableCell>
               </TableRow>
               {category.expanded && recentMeetings[category.id].map((meeting) => (
                 <TableRow
                   key={meeting.id}
                   id={meeting.id}
                   role="row"
-                  tabIndex={0}
+                  // tabIndex={0}
                   aria-level={2}
-                  {...tableRowTabsterAttribute}
+                  // {...tableRowTabsterAttribute}
                 >
                   <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
                   <TableCell role="gridcell">        <Button>Agenda and notes</Button></TableCell>

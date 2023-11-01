@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { UpcomingMeetingsGridRenderer, RecentMeetingsTreeGridRenderer } from './AccessibleMeetGridsRenderer';
+import { UpcomingMeetingsGridRowNavigationRenderer, RecentMeetingsTreeGridRowNavigationRenderer } from './AccessibleMeetGridsRowNavigationRenderer';
+import { UpcomingMeetingsGridCellNavigationRenderer, RecentMeetingsTreeGridCellNavigationRenderer } from './AccessibleMeetGridsCellNavigationRenderer';
 import { UpcomingMeetingsListRenderer, RecentMeetingsTreeListRenderer } from './AccessibleMeetListsRenderer';
 
 import {
@@ -267,12 +268,20 @@ label="Use cell-only navigation"
         <Button disabledFocusable={true}>Previous meetings</Button>
         <Button>Next meetings</Button>
 
-        {variant === 'grids' && (
-          <UpcomingMeetingsGridRenderer
+        {variant === 'gridsRowNavigation' && (
+          <UpcomingMeetingsGridRowNavigationRenderer
           cellNavigationOnly={cellNavigationOnly}
           threeUpcomingMeetings={threeUpcomingMeetings}
           />
         )}
+
+{variant === 'gridsCellNavigation' && (
+          <UpcomingMeetingsGridCellNavigationRenderer
+          cellNavigationOnly={cellNavigationOnly}
+          threeUpcomingMeetings={threeUpcomingMeetings}
+          />
+        )}
+
         {variant === 'lists' && (
           <UpcomingMeetingsListRenderer threeUpcomingMeetings={threeUpcomingMeetings} />
         )}
@@ -291,9 +300,14 @@ label="Use cell-only navigation"
   <Input />
 </Field>
 
-        {variant === 'grids' && (
-        <RecentMeetingsTreeGridRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
+        {variant === 'gridsRowNavigation' && (
+        <RecentMeetingsTreeGridRowNavigationRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
         )}
+
+{variant === 'gridsCellNavigation' && (
+        <RecentMeetingsTreeGridCellNavigationRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
+        )}
+
         {variant === 'lists' && (
         <RecentMeetingsTreeListRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
         )}
