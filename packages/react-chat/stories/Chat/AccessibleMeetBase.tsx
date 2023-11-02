@@ -33,6 +33,8 @@ const dateLocale = 'en-US';
 const nowDate = new Date('2023-10-01 12:30');
 
 const meetings = [
+
+  // Upcoming meetings
   {
     title: 'Weekly summary #3',
     startDate: '2023-10-06 14:30',
@@ -48,6 +50,8 @@ const meetings = [
     startDate: '2023-10-03 8:00',
     endDate: '2023-10-03 9:00',
   },
+
+  // Recent meetings
   {
     title: 'Monthly townhall',
     startDate: '2023-10-01 10:00',
@@ -55,10 +59,18 @@ const meetings = [
     properties: ['includingContent', 'recorded', 'mentionsOfYou'],
   },
   {
+    title: 'Planning for next quarter',
+    startDate: '2023-10-01 11:00',
+    endDate: '2023-10-01 12:00',
+    properties: ['recorded'],
+    tasksCount: 2,
+  },
+  {
     title: 'Weekly summary #2',
     startDate: '2023-09-29 14:30',
     endDate: '2023-09-29 15:30',
     properties: ['includingContent', 'recorded'],
+    tasksCount: 4,
   },
   {
     title: 'Mandatory training #1',
@@ -70,13 +82,13 @@ const meetings = [
     title: 'Meeting with John',
     startDate: '2023-09-28 10:15',
     endDate: '2023-09-28 11:15',
-    properties: ['includingContent', 'missed'],
+    properties: ['transcript', 'includingContent', 'missed'],
   },
   {
     title: 'Weekly summary #1',
     startDate: '2023-09-22 14:30',
     endDate: '2023-09-22 15:30',
-    properties: ['includingContent', 'missed', 'recorded', 'mentionsOfYou'],
+    properties: ['transcript', 'includingContent', 'missed', 'recorded', 'mentionsOfYou'],
   },
   {
     title: 'Meeting with Kate',
@@ -102,6 +114,7 @@ export type RecentMeetings = Record<string, {
   title: string;
   titleWithTime: string;
   properties?: string[];
+  tasksCount?: number;
   revealed: boolean;
 }[]>;
 

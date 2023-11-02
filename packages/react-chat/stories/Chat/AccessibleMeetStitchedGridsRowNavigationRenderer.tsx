@@ -29,18 +29,20 @@ interface IRecentMeetingsStitchedGridRowNavigationRendererProps {
 }
 export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRecentMeetingsStitchedGridRowNavigationRendererProps> = ({ recentCategories, recentMeetings }) => {
   const { targetDocument } = useFluent();
-const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
+  const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
 
   const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
 
-  const changeRecentCategoryExpandedState = React.useCallback((id: string, expanded: boolean) => {
-    recentCategoriesState.find(category => {
-      if (id === category.id) {
-        category.expanded = expanded;
-        return true;
-      }
-      return false;
+  const getCategoryById = React.useCallback((id: string) => {
+    return recentCategoriesState.find(category => {
+      return id === category.id;
     });
+  }, [recentCategoriesState]);
+
+  const changeRecentCategoryExpandedState = React.useCallback((category: RecentCategory | undefined, expanded: boolean) => {
+    if (category) {
+      category.expanded = expanded;
+    }
     setRecentCategoryState([...recentCategoriesState]);
   }, [recentCategoriesState]);
 
@@ -51,12 +53,15 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
       const isModifierDown = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
       if (!isModifierDown) {
         const selectedRowId = element.id;
+        const category = getCategoryById(selectedRowId);
         const level = element.getAttribute('aria-level');
-        if (event.key === 'ArrowRight' && level === '1') {
-          changeRecentCategoryExpandedState(selectedRowId, true);
+        if (event.key === 'ArrowRight' && level === '1' && category && !category.expanded) {
+          changeRecentCategoryExpandedState(category, true);
           callTabsterKeyboardHandler = false;
         } else if (event.key === 'ArrowLeft' && level === '1') {
-          changeRecentCategoryExpandedState(selectedRowId, false);
+          changeRecentCategoryExpandedState(category, false);
+        } else if ((event.key === 'Enter' || event.key === ' ') && level === '1') {
+          changeRecentCategoryExpandedState(category, !category?.expanded);
         } else if (event.key === 'ArrowLeft' && level === '2') {
           const categoryToFocus = recentCategories.find(category => {
             return !!recentMeetings[category.id].find(meeting => {
@@ -69,57 +74,72 @@ const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCat
       }
     }
     if (callTabsterKeyboardHandler) {
-    onTableKeyDown(event);
+      onTableKeyDown(event);
     }
   }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown, targetDocument]);
 
   return (
     <div
-    role="treegrid"
-    aria-label="All meetings"
-    aria-describedby="lastMeetings-hint"
-    onKeyDown={handleTreeGridKeyDown}
-    {...tableTabsterAttribute}
+      role="treegrid"
+      aria-label="All meetings"
+      aria-describedby="lastMeetings-hint"
+      onKeyDown={handleTreeGridKeyDown}
+      {...tableTabsterAttribute}
     >
-{recentCategories.map(category => (
-      <Table
-      role="presentation"
-        noNativeElements
-      >
-        <TableBody role="presentation">
+      {recentCategories.map(category => (
+        <Table
+          role="presentation"
+          noNativeElements
+        >
+          <TableBody role="presentation">
+            <TableRow
+              key={category.id}
+              id={category.id}
+              role="row"
+              tabIndex={0}
+              aria-level={1}
+              // aria-expanded={category.expanded}
+              {...tableRowTabsterAttribute}
+            >
+              <TableCell
+                role="gridcell"
+                tabIndex={0}
+              >{category.title}</TableCell>
+              <TableCell role="gridcell" colSpan={6}>        <Button>Header action</Button></TableCell>
+
+            </TableRow>
+            {category.expanded && recentMeetings[category.id].map((meeting) => (
               <TableRow
-                key={category.id}
-                id={category.id}
+                key={meeting.id}
+                id={meeting.id}
                 role="row"
                 tabIndex={0}
-                aria-level={1}
-                  // aria-expanded={category.expanded}
-                  {...tableRowTabsterAttribute}
+                aria-level={2}
+                {...tableRowTabsterAttribute}
               >
-                <TableCell
-                  role="gridcell"
-                  tabIndex={0}
-                  colSpan={4}
-                >{category.title}</TableCell>
+                <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
+                <TableCell role="gridcell"><Button>Chat with participants</Button></TableCell>
+                <TableCell role="gridcell"><Button>View recap</Button></TableCell>
+                <TableCell role="gridcell">
+                  {meeting.properties?.includes('includingContent') &&
+                  <Button>Agenda and notes</Button>
+                }
+                </TableCell>
+                <TableCell role="gridcell">
+                  {meeting.tasksCount  &&
+                  <Button>{meeting.tasksCount} tasks</Button>
+                }
+                </TableCell>
+                <TableCell role="gridcell">
+                  {meeting.properties?.includes('transcript') &&
+                  <Button>Transcript</Button>
+                }
+                </TableCell>
               </TableRow>
-              {category.expanded && recentMeetings[category.id].map((meeting) => (
-                <TableRow
-                  key={meeting.id}
-                  id={meeting.id}
-                  role="row"
-                  tabIndex={0}
-                  aria-level={2}
-                  {...tableRowTabsterAttribute}
-                >
-                  <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
-                  <TableCell role="gridcell">        <Button>Agenda and notes</Button></TableCell>
-                  <TableCell role="gridcell"><Button>Chat with participants</Button></TableCell>
-                  <TableCell role="gridcell"><Button>View recap</Button></TableCell>
-                </TableRow>
-              ))}
-        </TableBody>
-      </Table>
-          ))}
-          </div>
+            ))}
+          </TableBody>
+        </Table>
+      ))}
+    </div>
   );
 };
