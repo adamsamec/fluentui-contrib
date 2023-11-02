@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { RecentMeetingsStitchedTreeGridRowNavigationRenderer } from './AccessibleMeetStitchedGridsRowNavigationRenderer';
 import { UpcomingMeetingsGridRowNavigationRenderer, RecentMeetingsTreeGridRowNavigationRenderer } from './AccessibleMeetGridsRowNavigationRenderer';
 import { UpcomingMeetingsGridCellNavigationRenderer, RecentMeetingsTreeGridCellNavigationRenderer } from './AccessibleMeetGridsCellNavigationRenderer';
 import { UpcomingMeetingsListRenderer, RecentMeetingsTreeListRenderer } from './AccessibleMeetListsRenderer';
@@ -235,7 +236,7 @@ label="Use cell-only navigation"
 </>
 )}
 
-      <div role="application">
+      <div>
 
         <Toolbar>
           <ToolbarButton>Join with an ID</ToolbarButton>
@@ -268,6 +269,13 @@ label="Use cell-only navigation"
         <Button disabledFocusable={true}>Previous meetings</Button>
         <Button>Next meetings</Button>
 
+        {variant === 'stitchedGridsRowNavigation' && (
+          <UpcomingMeetingsGridRowNavigationRenderer
+          cellNavigationOnly={cellNavigationOnly}
+          threeUpcomingMeetings={threeUpcomingMeetings}
+          />
+        )}
+
         {variant === 'gridsRowNavigation' && (
           <UpcomingMeetingsGridRowNavigationRenderer
           cellNavigationOnly={cellNavigationOnly}
@@ -299,6 +307,10 @@ label="Use cell-only navigation"
 <Field label="Filter by keyword">
   <Input />
 </Field>
+
+{variant === 'stitchedGridsRowNavigation' && (
+        <RecentMeetingsStitchedTreeGridRowNavigationRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />
+        )}
 
         {variant === 'gridsRowNavigation' && (
         <RecentMeetingsTreeGridRowNavigationRenderer recentCategories={recentCategoriesRef.current} recentMeetings={recentMeetings} />

@@ -163,29 +163,28 @@ getGroupper(tabsterCore);
   }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, targetDocument]);
 
   return (
-    <>
-      <Table
-        role="treegrid"
-        noNativeElements
+    <div
+    role="treegrid"
         onKeyDown={handleTreeGridKeyDown}
         aria-label="All meetings"
         aria-describedby="lastMeetings-hint"
-        // {...tableTabsterAttribute}
-        {...getTabsterAttribute({
-          groupper: {
-            tabbability: Types.GroupperTabbabilities.Unlimited,
-          },
-          mover: { direction: Types.MoverDirections.Grid },
-        })} 
-      >
-        <TableBody>
+            {...getTabsterAttribute({
+              groupper: {
+                tabbability: Types.GroupperTabbabilities.Unlimited,
+              },
+              mover: { direction: Types.MoverDirections.Grid },
+            })}
+    >
           {recentCategories.map(category => (
-            <>
+      <Table
+        role="presentation"
+        noNativeElements
+      >
+        <TableBody role="presentation">
               <TableRow
                 key={category.id}
                 id={category.id}
                 role="row"
-                // tabIndex={0}
                 aria-level={1}
               >
                 <TableCell
@@ -200,9 +199,7 @@ getGroupper(tabsterCore);
                   key={meeting.id}
                   id={meeting.id}
                   role="row"
-                  // tabIndex={0}
                   aria-level={2}
-                  // {...tableRowTabsterAttribute}
                 >
                   <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
                   <TableCell role="gridcell">        <Button>Agenda and notes</Button></TableCell>
@@ -210,10 +207,9 @@ getGroupper(tabsterCore);
                   <TableCell role="gridcell"><Button>View recap</Button></TableCell>
                 </TableRow>
               ))}
-            </>
-          ))}
         </TableBody>
       </Table>
-    </>
+          ))}
+          </div>
   );
 };
