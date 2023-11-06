@@ -96,7 +96,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
       {recentCategories.map((category, categoryIndex) => (
         <Table
           role="treegrid"
-          // noNativeElements
+          noNativeElements
         >
           <TableBody role="presentation">
             <TableRow
