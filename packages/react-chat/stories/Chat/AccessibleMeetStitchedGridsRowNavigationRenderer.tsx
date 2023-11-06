@@ -31,7 +31,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
   const { targetDocument } = useFluent();
   const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
 
-  const { tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
+  const { tableTabsterAttribute, tableRowTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
 
   const getCategoryById = React.useCallback((id: string) => {
     return recentCategoriesState.find(category => {
@@ -87,7 +87,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
 
   return (
     <div
-    role="group"
+      role="group"
       aria-label="All meetings"
       aria-describedby="lastMeetings-hint"
       onKeyDown={handleTreeGridKeyDown}
@@ -96,7 +96,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
       {recentCategories.map((category, categoryIndex) => (
         <Table
           role="treegrid"
-          noNativeElements
+          // noNativeElements
         >
           <TableBody role="presentation">
             <TableRow
@@ -108,14 +108,17 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
               aria-level={1}
               aria-posinset={categoryIndex + 1}
               aria-setsize={recentCategories.length}
-              // aria-expanded={category.expanded}
+            // aria-expanded={category.expanded}
+            {...tableRowTabsterAttribute}
             >
               <TableCell
                 role="gridcell"
                 tabIndex={0}
               >{category.title}</TableCell>
-              <TableCell role="gridcell" colSpan={6}>        <Button>Header action</Button></TableCell>
-
+              <TableCell
+                role="gridcell"
+                aria-colSpan={category.id === 'category-today' ? 2 : 5}
+              ><Button>Header action</Button></TableCell>
             </TableRow>
             {category.expanded && recentMeetings[category.id].map((meeting) => (
               <TableRow
@@ -124,25 +127,32 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
                 id={meeting.id}
                 tabIndex={0}
                 aria-level={2}
+                {...tableRowTabsterAttribute}
               >
                 <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
                 <TableCell role="gridcell"><Button>Chat with participants</Button></TableCell>
                 <TableCell role="gridcell"><Button>View recap</Button></TableCell>
+                {category.id !== 'category-today' &&
                 <TableCell role="gridcell">
                   {meeting.properties?.includes('includingContent') &&
-                  <Button>Agenda and notes</Button>
-                }
+                    <Button>Agenda and notes</Button>
+                  }
                 </TableCell>
+}
+{category.id !== 'category-today' &&
                 <TableCell role="gridcell">
-                  {meeting.tasksCount  &&
-                  <Button>{meeting.tasksCount} tasks</Button>
-                }
+                  {meeting.tasksCount &&
+                    <Button>{`${meeting.tasksCount} tasks`}</Button>
+                  }
                 </TableCell>
+}
+                {category.id !== 'category-today' &&
                 <TableCell role="gridcell">
                   {meeting.properties?.includes('transcript') &&
-                  <Button>Transcript</Button>
-                }
+                    <Button>Transcript</Button>
+                  }
                 </TableCell>
+}
               </TableRow>
             ))}
           </TableBody>

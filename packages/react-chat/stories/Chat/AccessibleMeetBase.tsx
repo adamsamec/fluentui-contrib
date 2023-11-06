@@ -63,7 +63,6 @@ const meetings = [
     startDate: '2023-10-01 11:00',
     endDate: '2023-10-01 12:00',
     properties: ['recorded'],
-    tasksCount: 2,
   },
   {
     title: 'Weekly summary #2',
@@ -83,12 +82,13 @@ const meetings = [
     startDate: '2023-09-28 10:15',
     endDate: '2023-09-28 11:15',
     properties: ['transcript', 'includingContent', 'missed'],
+    tasksCount: 2,
   },
   {
     title: 'Weekly summary #1',
     startDate: '2023-09-22 14:30',
     endDate: '2023-09-22 15:30',
-    properties: ['transcript', 'includingContent', 'missed', 'recorded', 'mentionsOfYou'],
+    properties: ['includingContent', 'missed', 'recorded', 'mentionsOfYou'],
   },
   {
     title: 'Meeting with Kate',
@@ -168,9 +168,9 @@ setCellNavigationOnly(!!data.checked);
 
   const recentMeetings = React.useMemo(() => {
     const result: RecentMeetings = {
-      today: [],
-      yesterday: [],
-      lastWeek: [],
+      'category-today': [],
+      'category-yesterday': [],
+      'category-lastWeek': [],
     };
     meetings.forEach((meeting, index) => {
       const meetingStartDate = new Date(meeting.startDate);
@@ -195,11 +195,11 @@ setCellNavigationOnly(!!data.checked);
 
       // Categorize the recent meeting
       if (isTodayUntilNow) {
-        result.today.push(recentMeeting);
+        result['category-today'].push(recentMeeting);
       } else if ((meetingEndDate < nowDate) && (meetingEndDate >= yesterdayStartDate)) {
-        result.yesterday.push(recentMeeting);
+        result['category-yesterday'].push(recentMeeting);
       } else if ((meetingEndDate < nowDate) && (meetingEndDate >= beforeWeekStartDate)) {
-        result.lastWeek.push(recentMeeting);
+        result['category-lastWeek'].push(recentMeeting);
       } else if (meetingEndDate < nowDate) {
         const dayOfWeekOptions: Intl.DateTimeFormatOptions = { weekday: 'long' };
         const monthOptions: Intl.DateTimeFormatOptions = { month: 'long' };
@@ -207,25 +207,27 @@ setCellNavigationOnly(!!data.checked);
         const dayOfMonth = meetingStartDate.getDate();
         const month = new Intl.DateTimeFormat(dateLocale, monthOptions).format(meetingStartDate);
         const categoryTitle = `${dayOfWeek}, ${month} ${dayOfMonth}`;
-        if (meetingEndDateStr in result) {
-          result[meetingEndDateStr].push(recentMeeting);
+        const categoryId = `category-${meetingEndDateStr}`;
+        if (categoryId in result) {
+          result[categoryId].push(recentMeeting);
         } else {
           recentCategoriesRef.current.push({
-            id: meetingEndDateStr,
+            id: categoryId,
             title: categoryTitle,
             expanded: false,
           });
-          result[meetingEndDateStr] = [recentMeeting];
+          result[categoryId] = [recentMeeting];
         }
       }
     });
 
     // Insert relative-date categories into the recentCategories list in a right order if they contain at least one meeting
-    ['lastWeek', 'yesterday', 'today'].forEach(categoryId => {
+    ['lastWeek', 'yesterday', 'today'].forEach(categoryName => {
+      const categoryId = `category-${categoryName}`;
       if (result[categoryId].length > 0) {
         recentCategoriesRef.current.unshift({
           id: categoryId,
-          title: categoriesTitles[categoryId],
+          title: categoriesTitles[categoryName],
           expanded: false,
         });
       }
