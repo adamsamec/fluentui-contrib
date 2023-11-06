@@ -87,15 +87,15 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
 
   return (
     <div
-      role="treegrid"
+    role="group"
       aria-label="All meetings"
       aria-describedby="lastMeetings-hint"
       onKeyDown={handleTreeGridKeyDown}
       {...tableTabsterAttribute}
     >
-      {recentCategories.map(category => (
+      {recentCategories.map((category, categoryIndex) => (
         <Table
-          role="presentation"
+          role="treegrid"
           noNativeElements
         >
           <TableBody role="presentation">
@@ -106,6 +106,8 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
               tabIndex={0}
               onClick={handleRowClick}
               aria-level={1}
+              aria-posinset={categoryIndex + 1}
+              aria-setsize={recentCategories.length}
               // aria-expanded={category.expanded}
             >
               <TableCell
