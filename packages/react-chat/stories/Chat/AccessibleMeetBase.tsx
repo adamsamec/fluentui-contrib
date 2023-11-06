@@ -75,7 +75,7 @@ const meetings = [
     title: 'Mandatory training #1',
     startDate: '2023-09-29 9:00',
     endDate: '2023-09-29 10:00',
-    properties: ['includingContent', 'recorded', 'withYou'],
+    properties: ['includingContent', 'recorded', 'mentionsOfYou'],
   },
   {
     title: 'Meeting with John',
@@ -94,7 +94,7 @@ const meetings = [
     title: 'Meeting with Kate',
     startDate: '2023-09-22 13:30',
     endDate: '2023-09-22 14:15',
-    properties: ['includingContent'],
+    properties: ['includingContent', 'transcript'],
   },
 ];
 
@@ -107,6 +107,7 @@ export type RecentCategory = {
 id: string;
 title: string;
 expanded:boolean;
+columns:string[];
 };
 
 export type RecentMeetings = Record<string, {
@@ -215,6 +216,7 @@ setCellNavigationOnly(!!data.checked);
             id: categoryId,
             title: categoryTitle,
             expanded: false,
+            columns: [],
           });
           result[categoryId] = [recentMeeting];
         }
@@ -229,8 +231,28 @@ setCellNavigationOnly(!!data.checked);
           id: categoryId,
           title: categoriesTitles[categoryName],
           expanded: false,
+          columns: [],
         });
       }
+    });
+
+    // Determine the number of columns for each category
+    const excludedProperties = ['missed', 'recorded', 'mentionsOfYou'];
+    recentCategoriesRef.current.forEach(category => {
+result[category.id].forEach(meeting => {
+  if (meeting.tasksCount && !category.columns.includes('tasks')) {
+category.columns.push('tasks');
+  }
+  if (!meeting.properties) {
+return
+  }
+  meeting.properties.forEach(property => {
+if (!excludedProperties.includes(property) && !category.columns.includes(property)) {
+category.columns.push(property);
+}
+  });
+});
+console.log(category.id + ' = ' + JSON.stringify(category.columns));
     });
     
     return result;
@@ -317,7 +339,7 @@ label="Use cell-only navigation"
 <Tab value="includingContent">Meetings including content</Tab>
 <Tab value="missed">Meetings you missed</Tab>
 <Tab value="recorded">Recorded Meetings</Tab>
-<Tab value="mentions">Mentions of you</Tab>
+<Tab value="mentionsOfYou">Mentions of you</Tab>
 </TabList>
 <Field label="Filter by keyword">
   <Input />

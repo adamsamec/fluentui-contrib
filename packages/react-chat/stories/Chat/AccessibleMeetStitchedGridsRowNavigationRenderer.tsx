@@ -117,7 +117,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
               >{category.title}</TableCell>
               <TableCell
                 role="gridcell"
-                aria-colSpan={category.id === 'category-today' ? 2 : 5}
+                aria-colspan={category.columns.length + 2}
               ><Button>Header action</Button></TableCell>
             </TableRow>
             {category.expanded && recentMeetings[category.id].map((meeting) => (
@@ -132,21 +132,21 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
                 <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
                 <TableCell role="gridcell"><Button>Chat with participants</Button></TableCell>
                 <TableCell role="gridcell"><Button>View recap</Button></TableCell>
-                {category.id !== 'category-today' &&
+                {category.columns.includes('includingContent') &&
                 <TableCell role="gridcell">
                   {meeting.properties?.includes('includingContent') &&
                     <Button>Agenda and notes</Button>
                   }
                 </TableCell>
 }
-{category.id !== 'category-today' &&
+{category.columns.includes('tasks') &&
                 <TableCell role="gridcell">
                   {meeting.tasksCount &&
                     <Button>{`${meeting.tasksCount} tasks`}</Button>
                   }
                 </TableCell>
 }
-                {category.id !== 'category-today' &&
+                {category.columns.includes('transcript') &&
                 <TableCell role="gridcell">
                   {meeting.properties?.includes('transcript') &&
                     <Button>Transcript</Button>
