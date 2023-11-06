@@ -99,7 +99,6 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
               tabIndex={0}
               aria-level={1}
               // aria-expanded={category.expanded}
-              {...tableRowTabsterAttribute}
             >
               <TableCell
                 role="gridcell"
@@ -115,7 +114,6 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
                 role="row"
                 tabIndex={0}
                 aria-level={2}
-                {...tableRowTabsterAttribute}
               >
                 <TableCell role="gridcell" tabIndex={0}>{meeting.titleWithTime}</TableCell>
                 <TableCell role="gridcell"><Button>Chat with participants</Button></TableCell>
