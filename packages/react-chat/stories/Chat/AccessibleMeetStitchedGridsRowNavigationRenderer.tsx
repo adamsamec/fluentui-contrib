@@ -46,6 +46,13 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
     setRecentCategoryState([...recentCategoriesState]);
   }, [recentCategoriesState]);
 
+  const handleRowClick = React.useCallback((event: React.MouseEvent) => {
+    const element = event.target as HTMLElement;
+    const selectedRowId = element.id;
+    const category = getCategoryById(selectedRowId);
+    changeRecentCategoryExpandedState(category, !category?.expanded);
+  }, []);
+
   const handleTreeGridKeyDown = React.useCallback((event: React.KeyboardEvent) => {
     let callTabsterKeyboardHandler = true;
     const element = event.target as HTMLElement;
@@ -94,9 +101,10 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
           <TableBody role="presentation">
             <TableRow
               key={category.id}
-              id={category.id}
               role="row"
+              id={category.id}
               tabIndex={0}
+              onClick={handleRowClick}
               aria-level={1}
               // aria-expanded={category.expanded}
             >
@@ -110,8 +118,8 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
             {category.expanded && recentMeetings[category.id].map((meeting) => (
               <TableRow
                 key={meeting.id}
-                id={meeting.id}
                 role="row"
+                id={meeting.id}
                 tabIndex={0}
                 aria-level={2}
               >
