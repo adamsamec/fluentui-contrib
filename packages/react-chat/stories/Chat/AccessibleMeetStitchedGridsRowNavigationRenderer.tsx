@@ -31,7 +31,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
   const { targetDocument } = useFluent();
   const [recentCategoriesState, setRecentCategoryState] = React.useState(recentCategories);
 
-  const { tableRowTabsterAttribute, tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
+  const { tableTabsterAttribute, onTableKeyDown } = useTableCompositeNavigation();
 
   const getCategoryById = React.useCallback((id: string) => {
     return recentCategoriesState.find(category => {
