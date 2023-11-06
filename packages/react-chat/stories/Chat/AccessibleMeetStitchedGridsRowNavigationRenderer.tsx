@@ -51,7 +51,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
     const selectedRowId = element.id;
     const category = getCategoryById(selectedRowId);
     changeRecentCategoryExpandedState(category, !category?.expanded);
-  }, []);
+  }, [getCategoryById, changeRecentCategoryExpandedState]);
 
   const handleTreeGridKeyDown = React.useCallback((event: React.KeyboardEvent) => {
     let callTabsterKeyboardHandler = true;
@@ -83,7 +83,7 @@ export const RecentMeetingsStitchedTreeGridRowNavigationRenderer: React.FC<IRece
     if (callTabsterKeyboardHandler) {
       onTableKeyDown(event);
     }
-  }, [changeRecentCategoryExpandedState, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown, targetDocument]);
+  }, [changeRecentCategoryExpandedState, getCategoryById, recentCategories, recentMeetings, setRecentCategoryState, onTableKeyDown, targetDocument]);
 
   return (
     <div
