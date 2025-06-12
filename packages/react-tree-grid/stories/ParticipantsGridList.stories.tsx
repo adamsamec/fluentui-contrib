@@ -3,7 +3,7 @@ import { Button, List, ListItem } from '@fluentui/react-components';
 
 import { participantsList } from './participantsList';
 
-export const ParticipantsList = () => {
+export const ParticipantsGridList = () => {
   return (
     <List navigationMode="composite">
       {participantsList.people.map((name, index) => (
