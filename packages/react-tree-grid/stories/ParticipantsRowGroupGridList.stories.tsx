@@ -3,7 +3,7 @@ import { Button, List, ListItem } from '@fluentui/react-components';
 
 import { participantsList } from './participantsList';
 
-export const ParticipantsRowGroupedGridList = () => {
+export const ParticipantsRowGroupGridList = () => {
   return (
     <List navigationMode="composite">
       <div aria-hidden="true">People</div>

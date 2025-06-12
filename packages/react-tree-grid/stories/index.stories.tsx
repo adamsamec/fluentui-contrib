@@ -2,7 +2,7 @@ import { Meta } from '@storybook/react';
 import { TreeGrid } from '@fluentui-contrib/react-tree-grid';
 import description from '../README.md';
 
-export { ParticipantsRowGroupedGridList } from './ParticipantsRowGroupedGridList.stories';
+export { ParticipantsRowGroupGridList } from './ParticipantsRowGroupGridList.stories';
 export { ParticipantsGroupedGridList } from './ParticipantsGroupedGridList.stories';
 export { ParticipantsGridList } from './ParticipantsGridList.stories';
 export { ParticipantsTreeGrid } from './ParticipantsTreeGrid.stories';
